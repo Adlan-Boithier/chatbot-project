@@ -1,48 +1,85 @@
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
-import torch
+# Importation des bibliothèques nécessaires
+from dotenv import load_dotenv
+import os
+import sys
+from PyQt5 import QtWidgets, QtCore
+from mistralai.client import MistralClient
 
-tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
-model = GPT2LMHeadModel.from_pretrained("gpt2")
+# Charger les variables d'environnement à partir du fichier .env
+load_dotenv()
 
-def generate_response(prompt, max_length=50):
-    inputs = tokenizer.encode(prompt, return_tensors="pt")
-    outputs = model.generate(inputs, max_length=max_length, num_return_sequences=1)
-    return tokenizer.decode(outputs[0], skip_special_tokens=True)
+# Récupérer la clé API depuis la variable d'environnement
+API_KEY = os.getenv("MISTRAL_API_KEY")
 
-import tkinter as tk
-from tkinter import scrolledtext
+# Vérifier si la clé API a bien été chargée
+if not API_KEY:
+    print("Erreur : la clé API n'a pas été trouvée dans le fichier .env")
+else:
+    print("Clé API chargée avec succès")
+# Initialisation du client Mistral AI
+client = MistralClient(api_key=API_KEY)
 
-window = tk.Tk()
-window.title("Chatbot avec GPT-2")
-window.geometry("500x400")
+# Fonction pour envoyer le message et obtenir la réponse
+def chatbot_conversation(user_input):
+    try:
+        # Structure du message pour l'API Mistral
+        messages = [{"role": "user", "content": user_input}]
+        response = client.chat(model="mistral-tiny", messages=messages)
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"Erreur API : {e}"
 
-chat_area = scrolledtext.ScrolledText(window, wrap=tk.WORD, state='disabled')
-chat_area.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+# Classe pour l'interface graphique du chatbot
+class ChatbotApp(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
 
-input_frame = tk.Frame(window)
-input_frame.pack(padx=10, pady=10, fill=tk.X)
+    def initUI(self):
+        # Configuration de la fenêtre
+        self.setWindowTitle("Chatbot Mistral AI")
+        self.setGeometry(100, 100, 600, 400)
 
-user_input = tk.Entry(input_frame, width=40)
-user_input.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        # Zone de texte pour afficher la conversation
+        self.chat_window = QtWidgets.QTextEdit(self)
+        self.chat_window.setReadOnly(True)
+        self.chat_window.setStyleSheet("background-color: #f0f0f0; color: #333; font-size: 14px;")
 
-def send_message():
-    user_text = user_input.get()
-    if user_text.strip() == "":
-        return
+        # Zone de saisie pour l'utilisateur
+        self.input_box = QtWidgets.QLineEdit(self)
+        self.input_box.setStyleSheet("background-color: white; color: #333; font-size: 14px;")
+        self.input_box.returnPressed.connect(self.send_message)
 
-    chat_area.config(state='normal')
-    chat_area.insert(tk.END, f"Toi: {user_text}\n")
-    chat_area.config(state='disabled')
+        # Bouton pour envoyer le message
+        self.send_button = QtWidgets.QPushButton("Envoyer", self)
+        self.send_button.setStyleSheet("background-color: #4CAF50; color: white; font-size: 14px;")
+        self.send_button.clicked.connect(self.send_message)
 
-    response = generate_response(user_text)
-    chat_area.config(state='normal')
-    chat_area.insert(tk.END, f"Chatbot: {response}\n")
-    chat_area.config(state='disabled')
+        # Disposition des éléments
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(self.chat_window)
 
-    user_input.delete(0, tk.END)
-    chat_area.yview(tk.END)
+        input_layout = QtWidgets.QHBoxLayout()
+        input_layout.addWidget(self.input_box)
+        input_layout.addWidget(self.send_button)
 
-send_button = tk.Button(input_frame, text="Envoyer", command=send_message)
-send_button.pack(side=tk.RIGHT, padx=5)
+        layout.addLayout(input_layout)
+        self.setLayout(layout)
 
-window.mainloop()
+    def send_message(self):
+        user_input = self.input_box.text()
+        if user_input.strip():
+            # Afficher le message de l'utilisateur
+            self.chat_window.append(f"Vous: {user_input}")
+            self.input_box.clear()
+
+            # Obtenir la réponse du chatbot
+            bot_response = chatbot_conversation(user_input)
+            self.chat_window.append(f"Chatbot: {bot_response}")
+            QtWidgets.QApplication.processEvents()
+
+if __name__ == "__main__":
+    app = QtWidgets.QApplication(sys.argv)  # Maintenant 'sys' est défini
+    chatbot_app = ChatbotApp()
+    chatbot_app.show()
+    sys.exit(app.exec_())
