@@ -34,7 +34,7 @@ def chatbot_conversation(user_input):
         print("Erreur lors de l'appel à l'API :", e)  # Log
         return f"Erreur API : {e}"
 
-# Classe pour l'interface graphique du chatbot
+# Nouvelle classe ChatbotApp avec l'interface sombre
 class ChatbotApp(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
@@ -44,36 +44,36 @@ class ChatbotApp(QtWidgets.QWidget):
         # Configuration de la fenêtre
         self.setWindowTitle("Chatbot Mistral AI")
         self.setGeometry(100, 100, 800, 600)
-        self.setStyleSheet("background-color: #f5f5f5;")
+        self.setStyleSheet("background-color: #1e1e1e;")  # Fond sombre
 
         # Zone de texte pour afficher la conversation
         self.chat_window = QtWidgets.QListWidget(self)
         self.chat_window.setStyleSheet("""
-            background-color: white;
-            color: #333;
+            background-color: #2d2d2d;  # Fond sombre
+            color: #ffffff;  # Texte blanc
             font-size: 14px;
             border-radius: 10px;
             padding: 10px;
-            border: 1px solid #ddd;
+            border: 1px solid #444;
         """)
 
         # Zone de saisie pour l'utilisateur
         self.input_box = QtWidgets.QLineEdit(self)
         self.input_box.setPlaceholderText("Tapez votre message ici...")
         self.input_box.setStyleSheet("""
-            background-color: white;
-            color: #333;
+            background-color: #2d2d2d;  # Fond sombre
+            color: #ffffff;  # Texte blanc
             font-size: 14px;
             border-radius: 15px;
             padding: 10px;
-            border: 1px solid #ddd;
+            border: 1px solid #444;
         """)
         self.input_box.returnPressed.connect(self.send_message)
 
         # Bouton pour envoyer le message
         self.send_button = QtWidgets.QPushButton("Envoyer", self)
         self.send_button.setStyleSheet("""
-            background-color: #4CAF50;
+            background-color: #4CAF50;  # Bouton vert
             color: white;
             font-size: 14px;
             border-radius: 15px;
@@ -120,25 +120,25 @@ class ChatbotApp(QtWidgets.QWidget):
 
         # Appliquer des styles en fonction du rôle
         if role == "bot":
-            label_sender.setStyleSheet("color: #1e88e5;")
+            label_sender.setStyleSheet("color: #1e88e5;")  # Bleu pour le chatbot
             label_message.setStyleSheet("""
-                background-color: #e1f5fe;
-                color: #333;
+                background-color: #333333;  # Fond sombre pour les messages du bot
+                color: #ffffff;  # Texte blanc
                 font-size: 14px;
                 border-radius: 10px;
                 padding: 10px;
-                border: 1px solid #ddd;
+                border: 1px solid #444;
                 margin: 5px 0;
             """)
         else:
-            label_sender.setStyleSheet("color: #4CAF50;")
+            label_sender.setStyleSheet("color: #4CAF50;")  # Vert pour l'utilisateur
             label_message.setStyleSheet("""
-                background-color: #f5f5f5;
-                color: #333;
+                background-color: #333333;  # Fond sombre pour les messages de l'utilisateur
+                color: #ffffff;  # Texte blanc
                 font-size: 14px;
                 border-radius: 10px;
                 padding: 10px;
-                border: 1px solid #ddd;
+                border: 1px solid #444;
                 margin: 5px 0;
             """)
 
@@ -152,6 +152,7 @@ class ChatbotApp(QtWidgets.QWidget):
         # Faire défiler automatiquement vers le bas
         self.chat_window.scrollToBottom()
 
+# Point d'entrée du programme
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     chatbot_app = ChatbotApp()
